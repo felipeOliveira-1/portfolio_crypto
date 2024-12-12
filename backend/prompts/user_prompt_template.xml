@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<analysis_request>
+    <timestamp>{timestamp}</timestamp>
+    
+    <portfolio_data>
+        {portfolio_data}
+    </portfolio_data>
+
+    <required_analysis>
+        <portfolio_allocation_status>
+            - Calculate and show the current percentage split between crypto assets and stablecoin (MUSD)
+            - Indicate if the portfolio is within the target 70-30 allocation (±2.5% tolerance)
+            - Highlight any deviation from the target allocation bands
+        </portfolio_allocation_status>
+
+        <market_analysis>
+            - Recent performance of portfolio assets
+            - Market trends affecting the portfolio
+            - Key market indicators and their implications
+        </market_analysis>
+
+        <rebalancing_requirements>
+            - Specific actions needed to maintain 70-30 allocation
+            - Recommended trades with approximate amounts
+            - Priority of rebalancing actions
+        </rebalancing_requirements>
+
+        <strategic_recommendations>
+            - Optimal rebalancing approach
+            - Risk management considerations
+            - Market opportunity insights
+        </strategic_recommendations>
+
+        <action_items>
+            - Clear, prioritized steps for portfolio optimization
+            - Specific buy/sell recommendations with amounts
+            - Timeline for implementing changes
+        </action_items>
+    </required_analysis>
+</analysis_request>

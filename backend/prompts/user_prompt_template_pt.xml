@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<analysis_request>
+    <timestamp>{timestamp}</timestamp>
+    
+    <portfolio_data>
+        {portfolio_data}
+    </portfolio_data>
+
+    <required_analysis>
+        <portfolio_allocation_status>
+            - Calcular e mostrar a divisão percentual atual entre ativos cripto e stablecoin (USDB)
+            - Indicar se o portfólio está dentro da alocação alvo 70-30 (±2,5% de tolerância)
+            - Destacar qualquer desvio das bandas de alocação alvo
+        </portfolio_allocation_status>
+
+        <market_analysis>
+            - Desempenho recente dos ativos do portfólio
+            - Tendências de mercado que afetam o portfólio
+            - Indicadores-chave de mercado e suas implicações
+        </market_analysis>
+
+        <rebalancing_requirements>
+            - Ações específicas necessárias para manter a alocação 70-30
+            - Negociações recomendadas com valores aproximados
+            - Prioridade das ações de rebalanceamento
+        </rebalancing_requirements>
+
+        <strategic_recommendations>
+            - Abordagem ótima de rebalanceamento
+            - Considerações sobre gestão de risco
+            - Insights sobre oportunidades de mercado
+        </strategic_recommendations>
+
+        <action_items>
+            - Passos claros e priorizados para otimização do portfólio
+            - Recomendações específicas de compra/venda com valores
+            - Cronograma para implementação das mudanças
+        </action_items>
+    </required_analysis>
+</analysis_request>
