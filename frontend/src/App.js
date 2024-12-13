@@ -37,7 +37,8 @@ function App() {
 
   useEffect(() => {
     fetchData();
-    const interval = setInterval(fetchData, 300000);
+    // Atualização automática a cada 6 horas (21600000 ms)
+    const interval = setInterval(fetchData, 21600000);
     return () => clearInterval(interval);
   }, []);
 
