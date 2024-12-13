@@ -4,7 +4,6 @@ import PortfolioSummary from './components/PortfolioSummary';
 import AssetList from './components/AssetList';
 import PortfolioAnalysis from './components/PortfolioAnalysis';
 import LoadingSpinner from './components/LoadingSpinner';
-import config from './config';
 import './App.css';
 
 function App() {
@@ -23,7 +22,10 @@ function App() {
 
   const fetchData = async () => {
     try {
-      const response = await axios.get(`${config.API_URL}/portfolio/analysis`);
+      const baseUrl = process.env.NODE_ENV === 'production'
+        ? 'https://portfolio-crypto-backend.onrender.com/api'
+        : 'http://localhost:10000/api';
+      const response = await axios.get(`${baseUrl}/portfolio/analysis`);
       setPortfolioData(response.data);
       setLoading(false);
     } catch (err) {
