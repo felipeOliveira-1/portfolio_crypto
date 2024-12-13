@@ -171,9 +171,6 @@ main {
 }
 
 .portfolio-metrics {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 2rem;
   margin-bottom: 2rem;
 }
 
@@ -185,40 +182,75 @@ main {
   backdrop-filter: blur(4px);
   border: 1px solid rgba(255, 255, 255, 0.18);
   text-align: center;
+  max-width: 400px;
+  margin: 0 auto;
 }
 
 .portfolio-metrics .metric-card h3 {
   font-size: 1.1rem;
   color: var(--text-secondary);
-  margin-bottom: 1rem;
+  margin-bottom: 0.5rem;
+  font-weight: 500;
 }
 
 .portfolio-metrics .metric-card .metric-value {
-  font-size: 1.8rem;
-  font-weight: 600;
+  font-size: 2.5rem;
+  font-weight: 700;
   color: var(--text-primary);
+  margin-bottom: 1.5rem;
 }
 
-.portfolio-metrics .metric-card .percentage-positive {
+.portfolio-metrics .metric-card .variations {
+  display: flex;
+  justify-content: center;
+  gap: 2rem;
+}
+
+.portfolio-metrics .metric-card .variation {
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.1);
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.portfolio-metrics .variation-label {
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+}
+
+.portfolio-metrics .percentage-positive {
   color: #10b981;
+  font-weight: 600;
 }
 
-.portfolio-metrics .metric-card .percentage-negative {
+.portfolio-metrics .percentage-negative {
   color: #ef4444;
+  font-weight: 600;
 }
 
 @media (max-width: 768px) {
-  .portfolio-metrics {
-    grid-template-columns: 1fr;
-    gap: 1rem;
+  .portfolio-metrics .metric-card {
+    padding: 1.5rem;
+    max-width: 100%;
   }
-}
-
-/* Removendo as definições duplicadas */
-.metric-card,
-.metric-card h3,
-.metric-value {
-  /* Estas definições foram movidas para .portfolio-metrics .metric-card */
+  
+  .portfolio-metrics .metric-card .metric-value {
+    font-size: 2rem;
+  }
+  
+  .portfolio-metrics .metric-card .variations {
+    gap: 1rem;
+    flex-direction: column;
+    align-items: center;
+  }
+  
+  .portfolio-metrics .metric-card .variation {
+    width: 100%;
+    max-width: 200px;
+    justify-content: center;
+  }
 }
 
 /* Table Styles */
