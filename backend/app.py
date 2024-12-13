@@ -17,6 +17,22 @@ load_dotenv()
 app = Flask(__name__)
 CORS(app)
 
+# Configure Flask for UTF-8
+app.config['JSON_AS_ASCII'] = False
+
+# Add encoding headers to all responses
+@app.after_request
+def add_header(response):
+    if 'json' in response.content_type:
+        response.headers['Content-Type'] = 'application/json; charset=utf-8'
+    return response
+
+def json_response(data):
+    """Helper function to create JSON responses with proper encoding"""
+    response = jsonify(data)
+    response.headers['Content-Type'] = 'application/json; charset=utf-8'
+    return response
+
 # API configuration
 CMC_API_KEY = os.getenv('CMC_API_KEY')
 CMC_BASE_URL = 'https://pro-api.coinmarketcap.com/v1'
@@ -148,7 +164,7 @@ def get_ai_analysis(portfolio_data: Dict) -> Dict:
             return {"error": "Failed to load prompt templates"}
 
         # Format user prompt with current data
-        current_time = datetime.datetime.now().isoformat()
+        current_time = datetime.datetime.now().strftime("%d/%m/%Y, %H:%M:%S")
         
         # Calculate portfolio allocations
         total_value = portfolio_data['total_brl']
@@ -161,52 +177,24 @@ def get_ai_analysis(portfolio_data: Dict) -> Dict:
         current_stable_value = sum(data['value_brl'] for data in stablecoins.values())
         current_crypto_value = sum(data['value_brl'] for data in cryptos.values())
         
-        # Calculate target values
-        target_crypto_value = total_value * 0.70
-        target_stable_value = total_value * 0.30
+        # Calculate percentages
+        crypto_percentage = (current_crypto_value / total_value * 100) if total_value > 0 else 0
+        stable_percentage = (current_stable_value / total_value * 100) if total_value > 0 else 0
         
-        # Format detailed portfolio analysis
-        holdings_text = "DETALHAMENTO DOS ATIVOS:\n"
-        
-        # Add cryptocurrencies details
-        holdings_text += "\nCRYPTOCURRENCIES:\n"
-        for symbol, data in sorted(cryptos.items(), key=lambda x: x[1]['value_brl'], reverse=True):
-            allocation_pct = (data['value_brl'] / total_value) * 100
-            relative_crypto_pct = (data['value_brl'] / current_crypto_value * 100) if current_crypto_value > 0 else 0
-            
-            holdings_text += f"- {symbol}:\n"
-            holdings_text += f"  * Quantidade: {data['amount']:.8f}\n"
-            holdings_text += f"  * Valor: R$ {data['value_brl']:.2f}\n"
-            holdings_text += f"  * Alocação Total: {allocation_pct:.1f}%\n"
-            holdings_text += f"  * Alocação Relativa (dentro dos 70%): {relative_crypto_pct:.1f}%\n"
-            holdings_text += f"  * Variação 24h: {data['percent_change_24h']:.2f}%\n"
-            holdings_text += f"  * Variação 7d: {data['percent_change_7d']:.2f}%\n\n"
-        
-        # Add stablecoins details
-        holdings_text += "\nSTABLECOINS:\n"
-        for symbol, data in stablecoins.items():
-            allocation_pct = (data['value_brl'] / total_value) * 100
-            holdings_text += f"- {symbol}:\n"
-            holdings_text += f"  * Quantidade: {data['amount']:.8f}\n"
-            holdings_text += f"  * Valor: R$ {data['value_brl']:.2f}\n"
-            holdings_text += f"  * Alocação: {allocation_pct:.1f}%\n\n"
-        
-        # Add rebalancing analysis
-        holdings_text += f"\nANÁLISE DE BALANCEAMENTO (Estratégia 70-30):\n"
-        crypto_allocation = (current_crypto_value/total_value)*100
-        stable_allocation = (current_stable_value/total_value)*100
-        
-        holdings_text += f"- Valor Total do Portfólio: R$ {total_value:.2f}\n"
-        holdings_text += f"- Alocação Atual em Crypto: R$ {current_crypto_value:.2f} ({crypto_allocation:.1f}%)\n"
-        holdings_text += f"- Alocação Atual em Stablecoins: R$ {current_stable_value:.2f} ({stable_allocation:.1f}%)\n\n"
-        
-        # Format the analysis request
-        user_prompt = user_prompt_template.format(
-            timestamp=current_time,
-            portfolio_data=holdings_text
-        )
+        # Format user prompt
+        user_prompt = f"""
+Status atual do portfólio:
+- Valor Total: R$ {total_value:.2f}
+- Alocação em Criptomoedas: {crypto_percentage:.1f}%
+- Alocação em Stablecoins: {stable_percentage:.1f}%
 
-        # Create chat completion
+Por favor, analise o portfólio e forneça:
+1. Status da alocação atual
+2. Análise do mercado atual
+3. Recomendações de rebalanceamento se necessário
+"""
+
+        # Get AI analysis
         response = client.chat.completions.create(
             model="gpt-4o",
             messages=[
@@ -214,17 +202,22 @@ def get_ai_analysis(portfolio_data: Dict) -> Dict:
                 {"role": "user", "content": user_prompt}
             ],
             temperature=0.13,
-            max_tokens=1500,
-            presence_penalty=0.3,
-            frequency_penalty=0.3
+            max_tokens=1000
         )
 
+        # Extract and clean the analysis
+        analysis = response.choices[0].message.content.strip()
+        
+        # Ensure proper encoding
+        analysis = analysis.encode('utf-8').decode('utf-8')
+
         return {
-            "analysis": response.choices[0].message.content,
+            "analysis": analysis,
             "timestamp": current_time
         }
+
     except Exception as e:
-        error_msg = f"Error getting AI analysis: {e}\n{traceback.format_exc()}"
+        error_msg = f"Error in AI analysis: {str(e)}\n{traceback.format_exc()}"
         print(error_msg)
         return {"error": str(e)}
 
@@ -244,12 +237,12 @@ def get_portfolio():
     portfolio = load_portfolio()
     
     if not portfolio:
-        return jsonify({'error': 'Portfolio not found'}), 404
+        return json_response({'error': 'Portfolio not found'}), 404
     
     prices = get_crypto_prices(list(portfolio.keys()))
     
     if not prices:
-        return jsonify({'error': 'Unable to fetch current prices'}), 500
+        return json_response({'error': 'Unable to fetch current prices'}), 500
     
     portfolio_data = {
         'assets': {},
@@ -269,7 +262,7 @@ def get_portfolio():
             
             portfolio_data['total_brl'] += value_brl
     
-    return jsonify(portfolio_data)
+    return json_response(portfolio_data)
 
 @app.route('/api/portfolio/update', methods=['POST'])
 def update_portfolio():
@@ -277,30 +270,30 @@ def update_portfolio():
     try:
         data = request.get_json()
         if not data or 'assets' not in data:
-            return jsonify({'error': 'Invalid request data'}), 400
+            return json_response({'error': 'Invalid request data'}), 400
 
         # Load current portfolio
         current_portfolio = load_portfolio()
         if not current_portfolio:
-            return jsonify({'error': 'Failed to load current portfolio'}), 500
+            return json_response({'error': 'Failed to load current portfolio'}), 500
 
         # Update quantities
         for symbol, amount in data['assets'].items():
             try:
                 current_portfolio[symbol] = float(amount)
             except (ValueError, TypeError) as e:
-                return jsonify({'error': f'Invalid amount for {symbol}: {str(e)}'}), 400
+                return json_response({'error': f'Invalid amount for {symbol}: {str(e)}'}), 400
 
         # Save updated portfolio
         if save_portfolio(current_portfolio):
-            return jsonify({'message': 'Portfolio updated successfully', 'portfolio': current_portfolio})
+            return json_response({'message': 'Portfolio updated successfully', 'portfolio': current_portfolio})
         else:
-            return jsonify({'error': 'Failed to save portfolio'}), 500
+            return json_response({'error': 'Failed to save portfolio'}), 500
 
     except Exception as e:
         error_msg = f"Error updating portfolio: {str(e)}"
         print(error_msg)
-        return jsonify({'error': error_msg}), 500
+        return json_response({'error': error_msg}), 500
 
 @app.route('/api/portfolio/analysis', methods=['GET'])
 def get_portfolio_analysis():
@@ -309,14 +302,14 @@ def get_portfolio_analysis():
         portfolio = load_portfolio()
         if not portfolio:
             print("No portfolio data found")
-            return jsonify({'error': 'Portfolio not found'}), 404
+            return json_response({'error': 'Portfolio not found'}), 404
         
         print(f"Portfolio loaded: {portfolio}")
         
         prices = get_crypto_prices(list(portfolio.keys()))
         if not prices:
             print("Failed to fetch crypto prices")
-            return jsonify({'error': 'Unable to fetch current prices'}), 500
+            return json_response({'error': 'Unable to fetch current prices'}), 500
         
         print(f"Prices fetched successfully")
         
@@ -364,11 +357,11 @@ def get_portfolio_analysis():
         
         if 'error' in analysis_result:
             print(f"Error in AI analysis: {analysis_result['error']}")
-            return jsonify({'error': analysis_result['error']}), 500
+            return json_response({'error': analysis_result['error']}), 500
         
         print("Analysis completed successfully")
         
-        return jsonify({
+        return json_response({
             'portfolio': portfolio_data,
             'analysis': analysis_result['analysis'],
             'timestamp': analysis_result['timestamp']
@@ -377,7 +370,7 @@ def get_portfolio_analysis():
     except Exception as e:
         error_msg = f"Error in portfolio analysis: {str(e)}\n{traceback.format_exc()}"
         print(error_msg)
-        return jsonify({'error': str(e)}), 500
+        return json_response({'error': str(e)}), 500
 
 if __name__ == '__main__':
     app.run(debug=True)

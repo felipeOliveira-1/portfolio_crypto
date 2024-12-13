@@ -19,23 +19,32 @@ function App() {
     document.body.classList.toggle('dark-mode', darkMode);
   }, [darkMode]);
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const response = await axios.get('http://localhost:5000/api/portfolio/analysis');
-        setPortfolioData(response.data);
-        setLoading(false);
-      } catch (err) {
-        console.error('Error fetching data:', err);
-        setError(err.response?.data?.error || 'Failed to fetch portfolio data');
-        setLoading(false);
-      }
-    };
+  const fetchData = async () => {
+    try {
+      const response = await axios.get('http://localhost:5000/api/portfolio/analysis');
+      setPortfolioData(response.data);
+      setLoading(false);
+    } catch (err) {
+      console.error('Error fetching data:', err);
+      setError(err.response?.data?.error || 'Failed to fetch portfolio data');
+      setLoading(false);
+    }
+  };
 
+  useEffect(() => {
     fetchData();
     const interval = setInterval(fetchData, 300000);
     return () => clearInterval(interval);
   }, []);
+
+  const handleRefreshAnalysis = async () => {
+    setLoading(true);
+    try {
+      await fetchData();
+    } finally {
+      setLoading(false);
+    }
+  };
 
   if (loading) return <div className="loading">Loading...</div>;
   if (error) return <div className="error">{error}</div>;
@@ -63,24 +72,13 @@ function App() {
               <h2>Assets</h2>
               <AssetList 
                 assets={portfolioData.portfolio.assets} 
-                onUpdate={() => {
-                  setLoading(true);
-                  const fetchData = async () => {
-                    try {
-                      const response = await axios.get('http://localhost:5000/api/portfolio/analysis');
-                      setPortfolioData(response.data);
-                      setLoading(false);
-                    } catch (err) {
-                      console.error('Error fetching data:', err);
-                      setError(err.response?.data?.error || 'Failed to fetch portfolio data');
-                      setLoading(false);
-                    }
-                  };
-                  fetchData();
-                }} 
+                onUpdate={fetchData}
               />
             </div>
-            <PortfolioAnalysis portfolioData={portfolioData} />
+            <PortfolioAnalysis 
+              portfolioData={portfolioData}
+              onRefresh={handleRefreshAnalysis}
+            />
           </div>
         </div>
       </main>

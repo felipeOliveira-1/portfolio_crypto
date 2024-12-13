@@ -1,6 +1,6 @@
 import React from 'react';
 
-const PortfolioAnalysis = ({ portfolioData }) => {
+const PortfolioAnalysis = ({ portfolioData, onRefresh }) => {
   // Return null if portfolio data is not provided or doesn't have the expected structure
   if (!portfolioData || !portfolioData.analysis || !portfolioData.timestamp) {
     return null;
@@ -8,24 +8,37 @@ const PortfolioAnalysis = ({ portfolioData }) => {
 
   // Format the analysis text by removing XML tags and cleaning up the content
   const formatAnalysis = (analysisText) => {
-    return analysisText
-      .replace(/```xml/g, '')  // Remove ```xml
-      .replace(/```/g, '')     // Remove remaining ```
-      .replace(/<\?xml[^>]*\?>/g, '')  // Remove XML declaration
-      .replace(/<[^>]*>/g, '')         // Remove all XML tags
-      .split('\n')                     // Split into lines
-      .map(line => line.trim())        // Trim whitespace
-      .filter(line => line)            // Remove empty lines
-      .join('\n');                     // Join back with newlines
+    try {
+      return analysisText
+        .replace(/```xml/g, '')  // Remove ```xml
+        .replace(/```/g, '')     // Remove remaining ```
+        .replace(/<\?xml[^>]*\?>/g, '')  // Remove XML declaration
+        .replace(/<[^>]*>/g, '')         // Remove all XML tags
+        .split('\n')                     // Split into lines
+        .map(line => line.trim())        // Trim whitespace
+        .filter(line => line)            // Remove empty lines
+        .join('\n');                     // Join back with newlines
+    } catch (error) {
+      console.error('Error formatting analysis:', error);
+      return analysisText; // Return original text if formatting fails
+    }
   };
 
   const formattedAnalysis = formatAnalysis(portfolioData.analysis);
 
   return (
     <div className="analysis-section">
-      <h2>Portfolio Analysis</h2>
+      <div className="analysis-header">
+        <h2>Portfolio Analysis</h2>
+        <button 
+          className="refresh-button"
+          onClick={onRefresh}
+        >
+          Atualizar Análise
+        </button>
+      </div>
       <div className="timestamp">
-        Analysis generated at: {new Date(portfolioData.timestamp).toLocaleString('pt-BR')}
+        Analysis generated at: {portfolioData.timestamp}
       </div>
       <div className="analysis-content">
         <div className="analysis-text">
