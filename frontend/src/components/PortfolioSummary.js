@@ -14,6 +14,19 @@ const PortfolioSummary = ({ data }) => {
     percentage: ((asset.value_brl / total_brl) * 100).toFixed(2)
   }));
 
+  // Calcular variações (exemplo com dados simulados - você precisará adicionar estes dados no backend)
+  const change24h = 5.32; // Exemplo: +5.32%
+  const change7d = -2.15; // Exemplo: -2.15%
+
+  const formatPercentage = (value) => {
+    const sign = value >= 0 ? '+' : '';
+    return `${sign}${value.toFixed(2)}%`;
+  };
+
+  const getPercentageClass = (value) => {
+    return value >= 0 ? 'percentage-positive' : 'percentage-negative';
+  };
+
   const CustomTooltip = ({ active, payload }) => {
     if (active && payload && payload[0]) {
       const data = payload[0].payload;
@@ -39,6 +52,20 @@ const PortfolioSummary = ({ data }) => {
         <div className="total-value-label">Total Portfolio Value</div>
         <div className="total-value">
           R$ {Number(total_brl).toFixed(2)}
+        </div>
+        <div className="portfolio-metrics">
+          <div className="metric">
+            <span className="metric-label">24h</span>
+            <span className={getPercentageClass(change24h)}>
+              {formatPercentage(change24h)}
+            </span>
+          </div>
+          <div className="metric">
+            <span className="metric-label">7d</span>
+            <span className={getPercentageClass(change7d)}>
+              {formatPercentage(change7d)}
+            </span>
+          </div>
         </div>
       </div>
 
