@@ -67,7 +67,7 @@ def load_portfolio():
 def load_prompt_template(filename):
     """Load prompt template from file"""
     try:
-        with open(f'prompts/{filename}', 'r') as f:
+        with open(f'prompts/{filename}', 'r', encoding='utf-8') as f:
             return f.read()
     except FileNotFoundError as e:
         print(f"Prompt template file not found: {filename} - {e}")
