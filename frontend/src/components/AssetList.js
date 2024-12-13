@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import axios from 'axios';
+import config from '../config';
 
 const AssetList = ({ assets, onUpdate }) => {
   const [editingAsset, setEditingAsset] = useState(null);
@@ -36,7 +37,7 @@ const AssetList = ({ assets, onUpdate }) => {
         return;
       }
 
-      const response = await axios.post('http://localhost:5000/api/portfolio/update', {
+      const response = await axios.post(`${config.API_URL}/portfolio/update`, {
         assets: {
           [symbol]: newAmount
         }

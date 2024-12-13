@@ -4,6 +4,7 @@ import PortfolioSummary from './components/PortfolioSummary';
 import AssetList from './components/AssetList';
 import PortfolioAnalysis from './components/PortfolioAnalysis';
 import LoadingSpinner from './components/LoadingSpinner';
+import config from './config';
 import './App.css';
 
 function App() {
@@ -22,7 +23,7 @@ function App() {
 
   const fetchData = async () => {
     try {
-      const response = await axios.get('http://localhost:5000/api/portfolio/analysis');
+      const response = await axios.get(`${config.API_URL}/portfolio/analysis`);
       setPortfolioData(response.data);
       setLoading(false);
     } catch (err) {
