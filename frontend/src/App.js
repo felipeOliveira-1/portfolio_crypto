@@ -3,6 +3,7 @@ import axios from 'axios';
 import PortfolioSummary from './components/PortfolioSummary';
 import AssetList from './components/AssetList';
 import PortfolioAnalysis from './components/PortfolioAnalysis';
+import LoadingSpinner from './components/LoadingSpinner';
 import './App.css';
 
 function App() {
@@ -46,7 +47,7 @@ function App() {
     }
   };
 
-  if (loading) return <div className="loading">Loading...</div>;
+  if (loading) return <LoadingSpinner />;
   if (error) return <div className="error">{error}</div>;
   if (!portfolioData) return <div className="no-data">No portfolio data available</div>;
 
@@ -54,13 +55,15 @@ function App() {
     <div className={`App ${darkMode ? 'dark-mode' : ''}`}>
       <header className="App-header">
         <h1>Crypto Portfolio</h1>
-        <button 
-          className="theme-toggle"
-          onClick={() => setDarkMode(!darkMode)}
-          aria-label="Toggle dark mode"
-        >
-          {darkMode ? '☀️' : '🌙'}
-        </button>
+        <div className="header-controls">
+          <button 
+            className="theme-toggle"
+            onClick={() => setDarkMode(!darkMode)}
+            aria-label="Toggle dark mode"
+          >
+            {darkMode ? '☀️' : '🌙'}
+          </button>
+        </div>
       </header>
       <main>
         <div className="dashboard-container">

@@ -39,37 +39,71 @@ body {
 }
 
 .App-header {
-  background-color: var(--bg-secondary);
-  padding: 1.5rem;
-  color: var(--text-primary);
-  box-shadow: 0 2px 4px var(--shadow-color);
+  background: rgba(17, 24, 39, 0.75);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  padding: 1.2rem 2rem;
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
   display: flex;
   justify-content: space-between;
   align-items: center;
+  transition: all 0.3s ease;
 }
 
 .App-header h1 {
   margin: 0;
   font-size: 2.2rem;
-  font-weight: 600;
+  font-weight: 700;
   background: linear-gradient(45deg, var(--accent-color), #60a5fa);
   background-clip: text;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+}
+
+.App-header h1::before {
+  content: '₿';
+  font-size: 2.4rem;
+  background: linear-gradient(45deg, #f7931a, #ffd700);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.header-controls {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
 }
 
 .theme-toggle {
-  background: none;
+  background: rgba(255, 255, 255, 0.1);
   border: none;
-  font-size: 1.5rem;
+  font-size: 1.2rem;
   cursor: pointer;
-  padding: 0.5rem;
+  padding: 0.6rem;
   border-radius: 50%;
-  transition: transform 0.3s;
+  transition: all 0.3s ease;
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
 }
 
 .theme-toggle:hover {
   transform: scale(1.1);
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.theme-toggle:active {
+  transform: scale(0.95);
 }
 
 main {
@@ -623,6 +657,36 @@ main {
 
   .allocation-card .value {
     font-size: 1.2rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .App-header {
+    padding: 1rem;
+  }
+
+  .App-header h1 {
+    font-size: 1.8rem;
+  }
+
+  .App-header h1::before {
+    font-size: 2rem;
+  }
+
+  .theme-toggle {
+    width: 36px;
+    height: 36px;
+    font-size: 1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .App-header h1 {
+    font-size: 1.5rem;
+  }
+
+  .App-header h1::before {
+    font-size: 1.7rem;
   }
 }
 
