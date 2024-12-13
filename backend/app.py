@@ -15,7 +15,7 @@ from typing import Dict, List
 load_dotenv()
 
 app = Flask(__name__)
-CORS(app)
+CORS(app, resources={r"/api/*": {"origins": ["http://localhost:3000", "https://portfolio-crypto-frontend.onrender.com"]}})
 
 # Configure Flask for UTF-8
 app.config['JSON_AS_ASCII'] = False
@@ -704,4 +704,5 @@ def get_portfolio_analysis():
         return json_response({'error': str(e)}), 500
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host='0.0.0.0', port=port)
