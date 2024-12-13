@@ -2,6 +2,11 @@
 
 Um aplicativo web para gerenciar e analisar um portfólio de criptomoedas, com valores atualizados em tempo real.
 
+## URLs de Produção
+
+- Frontend: https://portfolio-crypto-frontend.onrender.com
+- Backend: https://portfolio-crypto-backend.onrender.com
+
 ## Funcionalidades
 
 - Visualização de ativos em tempo real com preços em BRL
@@ -75,4 +80,3 @@ portfolio_crypto/
     │   ├── App.js
     │   └── App.css
     └── package.json
-```
