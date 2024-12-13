@@ -75,14 +75,22 @@ const PortfolioSummary = ({ data }) => {
     <div className="portfolio-container">
       <div className="portfolio-metrics">
         <div className="metric-card">
-          <h3>Total do Portfólio</h3>
-          <p className="metric-value">{formatCurrency(total_brl)}</p>
+          <div className="metric-header">
+            <h3>Total do Portfólio</h3>
+          </div>
+          <div className="metric-body">
+            <p className="metric-value">{formatCurrency(total_brl)}</p>
+          </div>
         </div>
         <div className="metric-card">
-          <h3>Variação 24h</h3>
-          <p className={`metric-value ${getPercentageClass(changes?.change_24h || 0)}`}>
-            {formatPercentage(changes?.change_24h || 0)}
-          </p>
+          <div className="metric-header">
+            <h3>Variação 24h</h3>
+          </div>
+          <div className="metric-body">
+            <p className={`metric-value ${getPercentageClass(changes?.change_24h || 0)}`}>
+              {formatPercentage(changes?.change_24h || 0)}
+            </p>
+          </div>
         </div>
       </div>
 
