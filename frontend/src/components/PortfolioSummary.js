@@ -1,45 +1,81 @@
-import React from 'react';
-import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
+import React, { useState } from 'react';
+import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from 'recharts';
 
 const PortfolioSummary = ({ data }) => {
+  const [sortConfig, setSortConfig] = useState({ key: null, direction: 'ascending' });
+
   if (!data || !data.total_brl) return null;
 
-  const { total_brl, assets } = data;
+  const { total_brl, assets, changes } = data;
   
   const COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#6366f1', '#ec4899', '#8b5cf6'];
 
-  const allocation = Object.entries(assets).map(([symbol, asset]) => ({
-    symbol,
-    value: asset.value_brl / total_brl,
-    percentage: ((asset.value_brl / total_brl) * 100).toFixed(2)
-  }));
-
-  // Calcular variações (exemplo com dados simulados - você precisará adicionar estes dados no backend)
-  const change24h = 5.32; // Exemplo: +5.32%
-  const change7d = -2.15; // Exemplo: -2.15%
-
   const formatPercentage = (value) => {
     const sign = value >= 0 ? '+' : '';
-    return `${sign}${value.toFixed(2)}%`;
+    return `${sign}${Number(value).toFixed(2)}%`;
   };
 
   const getPercentageClass = (value) => {
     return value >= 0 ? 'percentage-positive' : 'percentage-negative';
   };
 
+  // Prepare data for table
+  const tableData = Object.entries(assets).map(([symbol, asset]) => {
+    const weight = (asset.value_brl / total_brl) * 100;
+    return {
+      symbol,
+      amount: asset.amount,
+      price_brl: asset.price_brl,
+      value_brl: asset.value_brl,
+      weight: weight,
+      change_24h: asset.percent_change_24h,
+      change_7d: asset.percent_change_7d,
+      market_cap: data.market_data?.[symbol]?.market_cap,
+      volume_24h: data.market_data?.[symbol]?.volume_24h
+    };
+  });
+
+  // Sorting function
+  const sortData = (key) => {
+    setSortConfig((current) => {
+      const direction = current.key === key && current.direction === 'ascending' ? 'descending' : 'ascending';
+      return { key, direction };
+    });
+  };
+
+  // Apply sorting
+  const sortedData = [...tableData].sort((a, b) => {
+    if (!sortConfig.key) return 0;
+    
+    const direction = sortConfig.direction === 'ascending' ? 1 : -1;
+    return a[sortConfig.key] > b[sortConfig.key] ? direction : -direction;
+  });
+
+  // Format numbers
+  const formatNumber = (number, decimals = 2) => {
+    if (number >= 1e9) return `${(number / 1e9).toFixed(decimals)}B`;
+    if (number >= 1e6) return `${(number / 1e6).toFixed(decimals)}M`;
+    if (number >= 1e3) return `${(number / 1e3).toFixed(decimals)}K`;
+    return number.toFixed(decimals);
+  };
+
+  // Prepare data for pie chart
+  const chartData = sortedData.map(asset => ({
+    symbol: asset.symbol,
+    value: asset.weight,
+    amount: formatNumber(asset.amount, 8),
+    valueFormatted: `R$ ${formatNumber(asset.value_brl)}`
+  }));
+
   const CustomTooltip = ({ active, payload }) => {
     if (active && payload && payload[0]) {
       const data = payload[0].payload;
       return (
-        <div style={{
-          backgroundColor: 'rgba(0, 0, 0, 0.8)',
-          padding: '8px',
-          borderRadius: '4px',
-          color: 'white',
-          fontSize: '14px'
-        }}>
-          <div>{data.symbol}</div>
-          <div>{data.percentage}%</div>
+        <div className="chart-tooltip">
+          <div className="tooltip-symbol">{data.symbol}</div>
+          <div className="tooltip-value">{data.valueFormatted}</div>
+          <div className="tooltip-amount">{data.amount} {data.symbol}</div>
+          <div className="tooltip-weight">{data.value.toFixed(2)}% do portfólio</div>
         </div>
       );
     }
@@ -56,57 +92,92 @@ const PortfolioSummary = ({ data }) => {
         <div className="portfolio-metrics">
           <div className="metric">
             <span className="metric-label">24h</span>
-            <span className={getPercentageClass(change24h)}>
-              {formatPercentage(change24h)}
+            <span className={getPercentageClass(changes?.change_24h || 0)}>
+              {formatPercentage(changes?.change_24h || 0)}
             </span>
           </div>
           <div className="metric">
             <span className="metric-label">7d</span>
-            <span className={getPercentageClass(change7d)}>
-              {formatPercentage(change7d)}
+            <span className={getPercentageClass(changes?.change_7d || 0)}>
+              {formatPercentage(changes?.change_7d || 0)}
             </span>
           </div>
         </div>
       </div>
 
-      <div className="assets-grid">
-        {Object.entries(assets).map(([symbol, asset]) => (
-          <div key={symbol} className="asset-card">
-            <div className="asset-symbol">{symbol}</div>
-            <div className="asset-amount">{Number(asset.amount).toFixed(8)}</div>
-            <div className="asset-value">R$ {Number(asset.value_brl).toFixed(2)}</div>
-          </div>
-        ))}
+      <div className="assets-table-container">
+        <table className="assets-table">
+          <thead>
+            <tr>
+              <th onClick={() => sortData('symbol')}>Asset</th>
+              <th onClick={() => sortData('amount')}>Amount</th>
+              <th onClick={() => sortData('price_brl')}>Price (BRL)</th>
+              <th onClick={() => sortData('value_brl')}>Value (BRL)</th>
+              <th onClick={() => sortData('weight')}>Weight</th>
+              <th onClick={() => sortData('change_24h')}>24h Change</th>
+              <th onClick={() => sortData('change_7d')}>7d Change</th>
+              <th onClick={() => sortData('market_cap')}>Market Cap</th>
+              <th onClick={() => sortData('volume_24h')}>24h Volume</th>
+            </tr>
+          </thead>
+          <tbody>
+            {sortedData.map((asset) => (
+              <tr key={asset.symbol}>
+                <td>
+                  <div className="asset-symbol-container">
+                    <img 
+                      src={`https://raw.githubusercontent.com/spothq/cryptocurrency-icons/master/32/color/${asset.symbol.toLowerCase()}.png`} 
+                      alt={asset.symbol}
+                      onError={(e) => e.target.style.display = 'none'}
+                    />
+                    {asset.symbol}
+                  </div>
+                </td>
+                <td className="amount-column">{formatNumber(asset.amount, 8)}</td>
+                <td className="price-column">R$ {formatNumber(asset.price_brl)}</td>
+                <td className="value-column">R$ {formatNumber(asset.value_brl)}</td>
+                <td className="value-column">{asset.weight.toFixed(2)}%</td>
+                <td className={`value-column ${getPercentageClass(asset.change_24h)}`}>
+                  {formatPercentage(asset.change_24h)}
+                </td>
+                <td className={`value-column ${getPercentageClass(asset.change_7d)}`}>
+                  {formatPercentage(asset.change_7d)}
+                </td>
+                <td className="value-column">R$ {formatNumber(asset.market_cap)}</td>
+                <td className="value-column">R$ {formatNumber(asset.volume_24h)}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
       </div>
 
       <div className="chart-container">
         <ResponsiveContainer width="100%" height={300}>
           <PieChart>
             <Pie
-              data={allocation}
+              data={chartData}
+              dataKey="value"
+              nameKey="symbol"
               cx="50%"
               cy="50%"
-              labelLine={false}
               outerRadius={100}
-              fill="#8884d8"
-              dataKey="value"
+              labelLine={false}
+              animationBegin={0}
+              animationDuration={1500}
             >
-              {allocation.map((entry, index) => (
-                <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+              {chartData.map((entry, index) => (
+                <Cell key={entry.symbol} fill={COLORS[index % COLORS.length]} />
               ))}
             </Pie>
             <Tooltip content={<CustomTooltip />} />
+            <Legend 
+              formatter={(value, entry) => `${value} (${entry.payload.value.toFixed(2)}%)`}
+              layout="vertical"
+              align="right"
+              verticalAlign="middle"
+            />
           </PieChart>
         </ResponsiveContainer>
-        <div className="chart-legend">
-          {allocation.map((item, index) => (
-            <div key={index} className="legend-item">
-              <span className="legend-color" style={{ backgroundColor: COLORS[index % COLORS.length] }}></span>
-              <span className="legend-label">{item.symbol}</span>
-              <span className="legend-value">{item.percentage}%</span>
-            </div>
-          ))}
-        </div>
       </div>
     </>
   );

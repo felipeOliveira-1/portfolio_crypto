@@ -96,10 +96,17 @@ main {
 
 .assets-section,
 .analysis-section {
-  background: var(--bg-secondary);
-  border-radius: 12px;
-  padding: 2rem;
-  box-shadow: 0 4px 6px var(--shadow-color);
+  background: rgba(17, 24, 39, 0.75);
+  border-radius: 16px;
+  padding: 1.5rem;
+  box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+  backdrop-filter: blur(4px);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  margin: 2rem 0;
+}
+
+.assets-section {
+  margin: 2rem 0;
 }
 
 .analysis-section {
@@ -186,24 +193,59 @@ main {
 
 /* Portfolio Summary Styles */
 .total-value-container {
-  background: var(--bg-secondary);
-  border-radius: 12px;
+  background: rgba(17, 24, 39, 0.75);
+  border-radius: 16px;
   padding: 1.5rem;
-  margin-bottom: 1.5rem;
-  text-align: center;
-  box-shadow: 0 2px 8px var(--shadow-color);
+  box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+  backdrop-filter: blur(4px);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  margin-bottom: 2rem;
 }
 
 .total-value-label {
-  font-size: 1.1rem;
-  color: var(--text-secondary);
+  color: #94a3b8;
+  font-size: 0.875rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
   margin-bottom: 0.5rem;
 }
 
 .total-value {
-  font-size: 2.5rem;
+  color: #60a5fa;
+  font-size: 2rem;
   font-weight: 600;
-  color: var(--accent-color);
+  font-family: 'Roboto Mono', monospace;
+  margin-bottom: 1rem;
+}
+
+.portfolio-metrics {
+  display: flex;
+  gap: 2rem;
+}
+
+.metric {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.metric-label {
+  color: #94a3b8;
+  font-size: 0.875rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.percentage-positive {
+  color: #10b981;
+  font-weight: 600;
+  font-size: 1.1rem;
+}
+
+.percentage-negative {
+  color: #ef4444;
+  font-weight: 600;
+  font-size: 1.1rem;
 }
 
 .assets-grid {
@@ -240,11 +282,13 @@ main {
 }
 
 .chart-container {
-  margin-top: 2rem;
+  background: rgba(17, 24, 39, 0.75);
+  border-radius: 16px;
   padding: 1.5rem;
-  background: var(--bg-secondary);
-  border-radius: 12px;
-  box-shadow: 0 2px 8px var(--shadow-color);
+  box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+  backdrop-filter: blur(4px);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  margin: 2rem 0;
 }
 
 .chart-legend {
@@ -307,53 +351,156 @@ main {
   font-weight: 500;
 }
 
-/* Asset Table Styles */
-.asset-table-container {
-  background: var(--bg-secondary);
-  border-radius: 12px;
+/* Asset Table Styles - Unified */
+.assets-table-container {
+  background: rgba(17, 24, 39, 0.75);
+  border-radius: 16px;
   padding: 1.5rem;
-  box-shadow: 0 2px 8px var(--shadow-color);
+  box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+  backdrop-filter: blur(4px);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  margin: 2rem 0;
+  overflow-x: auto;
 }
 
+.assets-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: 0.9rem;
+}
+
+.assets-table th {
+  text-align: right;
+  padding: 1rem;
+  color: #94a3b8;
+  font-size: 0.875rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border-bottom: 2px solid rgba(148, 163, 184, 0.1);
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+
+.assets-table th:first-child {
+  text-align: left;
+}
+
+.assets-table th:hover {
+  color: #60a5fa;
+}
+
+.assets-table td {
+  padding: 1rem;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.05);
+  color: #e2e8f0;
+  text-align: right;
+}
+
+.assets-table td:first-child {
+  text-align: left;
+}
+
+.assets-table tr:hover {
+  background: rgba(255, 255, 255, 0.03);
+  transition: background-color 0.2s ease;
+}
+
+.asset-symbol-container {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.asset-symbol-container img {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+}
+
+.amount-column,
+.price-column,
+.value-column {
+  font-family: 'Roboto Mono', monospace;
+  text-align: right;
+  padding-right: 1.5rem;
+}
+
+.percentage-positive,
+.percentage-negative {
+  font-family: 'Roboto Mono', monospace;
+  text-align: right;
+  padding-right: 1.5rem;
+  font-weight: 500;
+}
+
+.percentage-positive {
+  color: #10b981;
+}
+
+.percentage-negative {
+  color: #ef4444;
+}
+
+/* Chart Styles */
+.chart-tooltip {
+  background: rgba(17, 24, 39, 0.95);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  padding: 1rem;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.tooltip-symbol {
+  color: #94a3b8;
+  font-size: 0.875rem;
+  margin-bottom: 0.5rem;
+}
+
+.tooltip-value {
+  color: #60a5fa;
+  font-family: 'Roboto Mono', monospace;
+  font-size: 1rem;
+  font-weight: 600;
+  margin-bottom: 0.25rem;
+}
+
+.tooltip-amount,
+.tooltip-weight {
+  color: #e2e8f0;
+  font-size: 0.875rem;
+}
+
+/* Estilos para a tabela de ativos */
 .asset-table {
   width: 100%;
   border-collapse: separate;
   border-spacing: 0;
-  margin-top: 1rem;
+  margin: 1rem 0;
+  color: var(--text-primary);
 }
 
-.asset-table th {
-  text-align: left;
+.asset-table thead th {
+  background: rgba(17, 24, 39, 0.4);
   padding: 1rem;
-  color: var(--text-secondary);
+  text-align: left;
   font-weight: 500;
-  font-size: 0.9rem;
+  color: var(--text-secondary);
   border-bottom: 1px solid var(--border-color);
+}
+
+.asset-table tbody tr {
+  transition: background-color 0.2s ease;
+}
+
+.asset-table tbody tr:hover {
+  background: rgba(59, 130, 246, 0.05);
 }
 
 .asset-table td {
   padding: 1rem;
-  color: var(--text-primary);
-  font-size: 0.95rem;
   border-bottom: 1px solid var(--border-color);
-}
-
-.asset-table tr:last-child td {
-  border-bottom: none;
-}
-
-.asset-table tbody tr:hover {
-  background-color: var(--bg-primary);
-  transition: background-color 0.2s ease;
-}
-
-.asset-table td:nth-child(2),
-.asset-table td:nth-child(3),
-.asset-table td:nth-child(4),
-.asset-table th:nth-child(2),
-.asset-table th:nth-child(3),
-.asset-table th:nth-child(4) {
-  text-align: right;
 }
 
 .asset-symbol-cell {
@@ -368,108 +515,55 @@ main {
 
 .asset-price-cell,
 .asset-value-cell {
-  font-weight: 500;
-}
-
-/* Asset Table Edit Styles */
-.amount-input {
-  width: 120px;
-  padding: 0.5rem;
-  border: 1px solid var(--border-color);
-  border-radius: 4px;
-  background: var(--bg-primary);
-  color: var(--text-primary);
   font-family: monospace;
-  font-size: 0.95rem;
-}
-
-.amount-input:focus {
-  outline: none;
-  border-color: var(--accent-color);
-  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
+  text-align: right;
 }
 
 .asset-actions-cell {
-  white-space: nowrap;
+  text-align: right;
+  padding-right: 1.5rem;
 }
 
-.edit-btn,
-.save-btn,
-.cancel-btn {
-  padding: 0.4rem 0.8rem;
-  border-radius: 4px;
-  border: none;
-  font-size: 0.9rem;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  margin: 0 0.2rem;
+/* Ajuste do botão edit dentro da tabela */
+.asset-actions-cell .edit-btn {
+  opacity: 0;
+  transform: translateX(-10px);
+  transition: all 0.2s ease-in-out;
 }
 
+.asset-table tbody tr:hover .edit-btn {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+/* Estilo para os botões de edição */
 .edit-btn {
-  background: var(--accent-color);
-  color: white;
-}
-
-.save-btn {
-  background: #10b981;
-  color: white;
-}
-
-.cancel-btn {
-  background: #ef4444;
-  color: white;
-}
-
-.edit-btn:hover,
-.save-btn:hover,
-.cancel-btn:hover {
-  filter: brightness(110%);
-}
-
-.error-message {
-  color: #ef4444;
-  background: rgba(239, 68, 68, 0.1);
-  padding: 0.75rem;
-  border-radius: 4px;
-  margin-bottom: 1rem;
-  text-align: center;
-}
-
-/* Portfolio Metrics Styles */
-.portfolio-metrics {
-  display: flex;
-  justify-content: center;
-  gap: 3rem;
-  margin-top: 1rem;
-  padding: 0.75rem;
+  background: rgba(59, 130, 246, 0.1);
+  border: 1px solid rgba(59, 130, 246, 0.2);
+  color: var(--accent-color);
+  padding: 0.4rem 0.8rem;
   border-radius: 8px;
-  background-color: var(--bg-secondary);
+  cursor: pointer;
+  font-size: 0.85rem;
+  transition: all 0.2s ease-in-out;
+  backdrop-filter: blur(4px);
+  margin-left: 8px;
 }
 
-.metric {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.25rem;
-  min-width: 80px;
+.edit-btn:hover {
+  background: rgba(59, 130, 246, 0.2);
+  border-color: var(--accent-color);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(59, 130, 246, 0.1);
 }
 
-.metric-label {
-  font-size: 0.875rem;
-  color: var(--text-secondary);
-  font-weight: 500;
+.edit-btn:active {
+  transform: translateY(0);
+  box-shadow: none;
 }
 
-.percentage-positive {
-  color: #10b981;
-  font-weight: 600;
-  font-size: 1.1rem;
-}
-
-.percentage-negative {
-  color: #ef4444;
-  font-weight: 600;
-  font-size: 1.1rem;
+.edit-button {
+  display: none;
 }
 
 /* Responsive Design */
@@ -502,6 +596,16 @@ main {
 
   .analysis-text {
     font-size: 0.95rem;
+  }
+
+  .asset-table-container {
+    margin: 1rem -1rem;
+    border-radius: 0;
+  }
+  
+  .chart-container {
+    margin: 1rem -1rem;
+    border-radius: 0;
   }
 }
 

@@ -153,6 +153,101 @@ def get_crypto_prices(symbols):
         print(f"Error in get_crypto_prices: {e}\n{traceback.format_exc()}")
         return None
 
+def get_crypto_price_changes(symbols: List[str]) -> Dict:
+    """
+    Get price changes for cryptocurrencies from CoinMarketCap
+    Args:
+        symbols: List of cryptocurrency symbols
+    Returns:
+        Dict containing price changes for each symbol
+    """
+    try:
+        # Convert symbols to CMC format
+        symbols_str = ','.join(symbols)
+        
+        url = f"{CMC_BASE_URL}/cryptocurrency/quotes/latest"
+        parameters = {
+            'symbol': symbols_str,
+            'convert': 'BRL'
+        }
+        headers = {
+            'Accepts': 'application/json',
+            'X-CMC_PRO_API_KEY': CMC_API_KEY
+        }
+
+        response = requests.get(url, headers=headers, params=parameters)
+        data = response.json()
+
+        if 'data' not in data:
+            print(f"Error getting price changes: {data.get('status', {}).get('error_message', 'Unknown error')}")
+            return {}
+
+        changes = {}
+        for symbol in symbols:
+            if symbol in data['data']:
+                quote = data['data'][symbol]['quote']['BRL']
+                changes[symbol] = {
+                    'change_24h': quote['percent_change_24h'],
+                    'change_7d': quote['percent_change_7d']
+                }
+            else:
+                changes[symbol] = {
+                    'change_24h': 0,
+                    'change_7d': 0
+                }
+
+        return changes
+
+    except Exception as e:
+        print(f"Error getting price changes: {str(e)}")
+        traceback.print_exc()
+        return {}
+
+def calculate_portfolio_changes(portfolio_data: Dict) -> Dict:
+    """
+    Calculate portfolio value changes based on individual asset changes
+    Args:
+        portfolio_data: Dictionary containing portfolio information
+    Returns:
+        Dict containing portfolio changes
+    """
+    try:
+        assets = portfolio_data.get('assets', {})
+        if not assets:
+            return {'change_24h': 0, 'change_7d': 0}
+
+        # Get symbols
+        symbols = list(assets.keys())
+        
+        # Get price changes from CMC
+        price_changes = get_crypto_price_changes(symbols)
+        
+        # Calculate weighted changes
+        total_value = portfolio_data['total_brl']
+        weighted_24h = 0
+        weighted_7d = 0
+
+        for symbol, asset in assets.items():
+            # Calculate weight of this asset in portfolio
+            weight = asset['value_brl'] / total_value
+            
+            # Get asset changes
+            asset_changes = price_changes.get(symbol, {'change_24h': 0, 'change_7d': 0})
+            
+            # Add weighted changes
+            weighted_24h += weight * asset_changes['change_24h']
+            weighted_7d += weight * asset_changes['change_7d']
+
+        return {
+            'change_24h': weighted_24h,
+            'change_7d': weighted_7d
+        }
+
+    except Exception as e:
+        print(f"Error calculating portfolio changes: {str(e)}")
+        traceback.print_exc()
+        return {'change_24h': 0, 'change_7d': 0}
+
 def generate_market_analysis(portfolio_data: Dict, template_data: Dict) -> Dict:
     """
     Generate detailed portfolio analysis following 70-30 strategy with 2.5% tolerance
@@ -582,7 +677,11 @@ def get_portfolio_analysis():
                     continue
         
         print(f"Portfolio data processed: {portfolio_data}")
-        
+
+        # Calculate portfolio changes using CMC data
+        changes = calculate_portfolio_changes(portfolio_data)
+        portfolio_data["changes"] = changes
+
         # Get AI analysis
         analysis_result = get_ai_analysis(portfolio_data)
         
