@@ -6,6 +6,13 @@ import PortfolioAnalysis from './components/PortfolioAnalysis';
 import LoadingSpinner from './components/LoadingSpinner';
 import './App.css';
 
+// Definindo as URLs da API
+const API_URL = process.env.NODE_ENV === 'production'
+  ? 'https://portfolio-crypto-backend.onrender.com/api'
+  : 'http://localhost:10000/api';
+
+console.log('Using API URL:', API_URL);
+
 function App() {
   const [portfolioData, setPortfolioData] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -22,10 +29,8 @@ function App() {
 
   const fetchData = async () => {
     try {
-      const baseUrl = process.env.NODE_ENV === 'production'
-        ? 'https://portfolio-crypto-backend.onrender.com/api'
-        : 'http://localhost:10000/api';
-      const response = await axios.get(`${baseUrl}/portfolio/analysis`);
+      console.log('Fetching data from:', API_URL);
+      const response = await axios.get(`${API_URL}/portfolio/analysis`);
       setPortfolioData(response.data);
       setLoading(false);
     } catch (err) {
@@ -80,6 +85,7 @@ function App() {
               <AssetList 
                 assets={portfolioData.portfolio.assets} 
                 onUpdate={fetchData}
+                apiUrl={API_URL}
               />
             </div>
             <PortfolioAnalysis 

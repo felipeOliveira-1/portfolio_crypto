@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
 import axios from 'axios';
-import config from '../config';
 
-const AssetList = ({ assets, onUpdate }) => {
+const AssetList = ({ assets, onUpdate, apiUrl }) => {
   const [editingAsset, setEditingAsset] = useState(null);
   const [editValue, setEditValue] = useState('');
   const [error, setError] = useState('');
+  const [isUpdating, setIsUpdating] = useState(false);
 
   const formatBRL = (value) => {
     return new Intl.NumberFormat('pt-BR', {
@@ -37,7 +37,10 @@ const AssetList = ({ assets, onUpdate }) => {
         return;
       }
 
-      const response = await axios.post(`${config.API_URL}/portfolio/update`, {
+      setIsUpdating(true);
+      setError('');
+
+      const response = await axios.post(`${apiUrl}/portfolio/update`, {
         assets: {
           [symbol]: newAmount
         }
@@ -45,11 +48,13 @@ const AssetList = ({ assets, onUpdate }) => {
 
       if (response.data.message === 'Portfolio updated successfully') {
         setEditingAsset(null);
-        setError('');
-        if (onUpdate) onUpdate();
+        if (onUpdate) await onUpdate();
       }
     } catch (err) {
+      console.error('Error updating asset:', err);
       setError(err.response?.data?.error || 'Failed to update asset');
+    } finally {
+      setIsUpdating(false);
     }
   };
 
@@ -74,7 +79,7 @@ const AssetList = ({ assets, onUpdate }) => {
         </thead>
         <tbody>
           {Object.entries(assets).map(([symbol, asset]) => (
-            <tr key={symbol}>
+            <tr key={symbol} className={isUpdating && editingAsset === symbol ? 'updating' : ''}>
               <td className="asset-symbol-cell">{symbol}</td>
               <td className="asset-amount-cell">
                 {editingAsset === symbol ? (
@@ -84,6 +89,7 @@ const AssetList = ({ assets, onUpdate }) => {
                     onChange={(e) => setEditValue(e.target.value)}
                     className="amount-input"
                     autoFocus
+                    disabled={isUpdating}
                   />
                 ) : (
                   formatAmount(asset.amount)
@@ -94,15 +100,27 @@ const AssetList = ({ assets, onUpdate }) => {
               <td className="asset-actions-cell">
                 {editingAsset === symbol ? (
                   <>
-                    <button onClick={() => handleSave(symbol)} className="save-btn">
-                      Save
+                    <button 
+                      onClick={() => handleSave(symbol)} 
+                      className={`save-btn ${isUpdating ? 'updating' : ''}`}
+                      disabled={isUpdating}
+                    >
+                      {isUpdating ? 'Updating...' : 'Save'}
                     </button>
-                    <button onClick={handleCancel} className="cancel-btn">
+                    <button 
+                      onClick={handleCancel} 
+                      className="cancel-btn"
+                      disabled={isUpdating}
+                    >
                       Cancel
                     </button>
                   </>
                 ) : (
-                  <button onClick={() => handleEdit(symbol, asset.amount)} className="edit-btn">
+                  <button 
+                    onClick={() => handleEdit(symbol, asset.amount)} 
+                    className="edit-btn"
+                    disabled={isUpdating}
+                  >
                     Edit
                   </button>
                 )}

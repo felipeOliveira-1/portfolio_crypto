@@ -934,3 +934,23 @@ main {
     transform: translateY(0);
   }
 }
+
+/* Estilos para feedback de atualização */
+.asset-table tr.updating {
+  background: rgba(59, 130, 246, 0.1);
+}
+
+.save-btn.updating {
+  background: rgba(59, 130, 246, 0.2);
+  cursor: wait;
+}
+
+button:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.amount-input:disabled {
+  background: rgba(255, 255, 255, 0.1);
+  cursor: wait;
+}
