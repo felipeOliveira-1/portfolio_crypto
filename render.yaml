@@ -3,12 +3,8 @@ services:
     name: portfolio-crypto-backend
     env: python
     region: oregon
-    buildCommand: |
-      cd backend
-      pip install -r requirements.txt
-    startCommand: |
-      cd backend
-      PYTHONPATH=$PYTHONPATH:. gunicorn --config gunicorn_config.py run:app
+    buildCommand: cd backend && pip install -r requirements.txt
+    startCommand: cd backend && gunicorn app:app
     envVars:
       - key: PYTHON_VERSION
         value: 3.11.0
