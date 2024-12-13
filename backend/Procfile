@@ -1,1 +1,1 @@
-web: gunicorn --config gunicorn_config.py run:app
+web: PYTHONPATH=$PYTHONPATH:. gunicorn --config gunicorn_config.py run:app
