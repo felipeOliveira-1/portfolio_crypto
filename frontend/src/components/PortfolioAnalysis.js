@@ -14,6 +14,7 @@ const PortfolioAnalysis = ({ portfolioData, onRefresh }) => {
         .replace(/```/g, '')     // Remove remaining ```
         .replace(/<\?xml[^>]*\?>/g, '')  // Remove XML declaration
         .replace(/<[^>]*>/g, '')         // Remove all XML tags
+        .replace(/\*\*/g, '')            // Remove asterisks
         .split('\n')                     // Split into lines
         .map(line => line.trim())        // Trim whitespace
         .filter(line => line)            // Remove empty lines

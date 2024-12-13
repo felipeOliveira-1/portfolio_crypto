@@ -46,9 +46,8 @@
 
     <constraints>
         <constraint>Focus on Brazilian market context (BRL currency)</constraint>
-        <constraint>Provide specific, actionable recommendations</constraint>
-        <constraint>Include risk warnings and disclaimers</constraint>
-        <constraint>Base analysis on current market data</constraint>
-        <constraint>Consider both short and long-term perspectives</constraint>
+        <constraint>Provide specific, actionable recommendations with exact quantities</constraint>
+        <constraint>Always include exact quantities and values for buying/selling each asset</constraint>
+        <constraint>Format recommendations in a clear, step-by-step manner</constraint>
     </constraints>
 </prompt>

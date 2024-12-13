@@ -155,7 +155,7 @@ def get_crypto_prices(symbols):
 
 def generate_market_analysis(portfolio_data: Dict, template_data: Dict) -> Dict:
     """
-    Generate detailed portfolio analysis following 70-30 strategy
+    Generate detailed portfolio analysis following 70-30 strategy with 2.5% tolerance
     Args:
         portfolio_data: Dictionary containing portfolio information
         template_data: Dictionary containing analysis templates
@@ -206,43 +206,16 @@ def generate_market_analysis(portfolio_data: Dict, template_data: Dict) -> Dict:
         current_crypto_pct = (crypto_value / total_value) * 100
         current_stable_pct = (stable_value / total_value) * 100
 
-        # Calculate target values
-        target_crypto_value = total_value * 0.7  # 70% target for crypto
-        target_stable_value = total_value * 0.3  # 30% target for stable
-
-        # Check if rebalancing is needed (5% threshold)
-        if abs(current_crypto_pct - 70) > 5 or abs(current_stable_pct - 30) > 5:
+        # Check if portfolio is within 70-30 tolerance (±2.5%)
+        THRESHOLD = 2.5
+        if abs(current_crypto_pct - 70) > THRESHOLD:  # Only rebalance if portfolio is out of range
             analysis_data['rebalance_needed'] = True
-
-            # Calculate adjustments for each crypto asset
-            crypto_assets = list(analysis_data['allocations']['crypto'].items())
-            total_crypto_allocation = sum(data['allocation_total'] for _, data in crypto_assets)
             
-            for symbol, data in crypto_assets:
-                current_amount = data['amount']
-                current_value = data['value_brl']
-                price = data['price_brl']
-                
-                # Calculate target allocation within crypto portion (maintaining relative proportions)
-                relative_weight = data['allocation_total'] / total_crypto_allocation if total_crypto_allocation > 0 else 0
-                target_value = target_crypto_value * relative_weight
-                target_amount = target_value / price if price > 0 else 0
-                
-                adjustment_amount = target_amount - current_amount
-                adjustment_value = adjustment_amount * price
-                
-                analysis_data['asset_adjustments'].append({
-                    'symbol': symbol,
-                    'current_amount': current_amount,
-                    'target_amount': target_amount,
-                    'amount_adjustment': adjustment_amount,
-                    'current_value_brl': current_value,
-                    'target_value_brl': target_value,
-                    'adjustment_brl': adjustment_value,
-                    'action': 'comprar' if adjustment_amount > 0 else 'vender'
-                })
+            # Calculate target values
+            target_crypto_value = total_value * 0.7  # 70% target for crypto
+            target_stable_value = total_value * 0.3  # 30% target for stable
 
-            # Add rebalancing suggestions
+            # Add portfolio-level rebalancing suggestions
             analysis_data['rebalance_suggestions'].append({
                 'type': 'crypto',
                 'current_percentage': current_crypto_pct,
@@ -255,6 +228,72 @@ def generate_market_analysis(portfolio_data: Dict, template_data: Dict) -> Dict:
                 'target_percentage': 30,
                 'adjustment_brl': target_stable_value - stable_value
             })
+
+            # Calculate adjustments for each asset to achieve target allocation
+            crypto_assets = list(analysis_data['allocations']['crypto'].items())
+            total_crypto_allocation = sum(data['allocation_total'] for _, data in crypto_assets)
+            
+            # Adjust cryptos proportionally
+            for symbol, data in crypto_assets:
+                current_amount = data['amount']
+                current_value = data['value_brl']
+                price = data['price_brl']
+                
+                # Maintain relative weights within crypto portion
+                relative_weight = data['allocation_total'] / total_crypto_allocation if total_crypto_allocation > 0 else 0
+                target_value = target_crypto_value * relative_weight
+                target_amount = target_value / price if price > 0 else 0
+                
+                adjustment_amount = target_amount - current_amount
+                adjustment_value = adjustment_amount * price
+                
+                current_pct = (current_value / total_value) * 100
+                target_pct = (target_value / total_value) * 100
+
+                analysis_data['asset_adjustments'].append({
+                    'symbol': symbol,
+                    'current_amount': current_amount,
+                    'target_amount': target_amount,
+                    'amount_adjustment': adjustment_amount,
+                    'current_value_brl': current_value,
+                    'target_value_brl': target_value,
+                    'adjustment_brl': adjustment_value,
+                    'current_percentage': current_pct,
+                    'target_percentage': target_pct,
+                    'action': 'comprar' if adjustment_amount > 0 else 'vender'
+                })
+
+            # Adjust stablecoins proportionally
+            stable_assets = list(analysis_data['allocations']['stable'].items())
+            total_stable_allocation = sum(data['allocation_total'] for _, data in stable_assets)
+            
+            for symbol, data in stable_assets:
+                current_amount = data['amount']
+                current_value = data['value_brl']
+                price = data['price_brl']
+                
+                relative_weight = data['allocation_total'] / total_stable_allocation if total_stable_allocation > 0 else 0
+                target_value = target_stable_value * relative_weight
+                target_amount = target_value / price if price > 0 else 0
+                
+                adjustment_amount = target_amount - current_amount
+                adjustment_value = adjustment_amount * price
+                
+                current_pct = (current_value / total_value) * 100
+                target_pct = (target_value / total_value) * 100
+
+                analysis_data['asset_adjustments'].append({
+                    'symbol': symbol,
+                    'current_amount': current_amount,
+                    'target_amount': target_amount,
+                    'amount_adjustment': adjustment_amount,
+                    'current_value_brl': current_value,
+                    'target_value_brl': target_value,
+                    'adjustment_brl': adjustment_value,
+                    'current_percentage': current_pct,
+                    'target_percentage': target_pct,
+                    'action': 'comprar' if adjustment_amount > 0 else 'vender'
+                })
 
         return analysis_data
 
@@ -304,34 +343,44 @@ def format_rebalancing_suggestions(suggestions: List) -> str:
 def format_asset_adjustments(adjustments: List) -> str:
     """Format detailed asset-specific adjustments for the prompt"""
     if not adjustments:
-        return ""
+        return "\nPortfólio está dentro da margem de tolerância de ±2.5% da regra 70-30. Não são necessários ajustes no momento."
 
-    result = ["\nAjustes Detalhados por Ativo:"]
+    result = ["\nRecomendações de Rebalanceamento (Portfólio fora da margem 70-30 ±2.5%):"]
     
-    # Separate cryptos and stables for organized display
-    stables = [adj for adj in adjustments if adj['symbol'] in ['USDT', 'MUSD', 'USDB']]
+    # Separate cryptos and stables
     cryptos = [adj for adj in adjustments if adj['symbol'] not in ['USDT', 'MUSD', 'USDB']]
+    stables = [adj for adj in adjustments if adj['symbol'] in ['USDT', 'MUSD', 'USDB']]
     
-    result.append("\nCriptomoedas:")
-    for adj in cryptos:
-        result.append(f"\n{adj['symbol']}:")
-        result.append(f"  * Valor Atual: R$ {adj['current_value_brl']:.2f}")
-        result.append(f"  * Valor Alvo: R$ {adj['target_value_brl']:.2f}")
-        result.append(f"  * Quantidade Atual: {adj['current_amount']:.8f}")
-        result.append(f"  * Quantidade Alvo: {adj['target_amount']:.8f}")
-        result.append(f"  * Ajuste Necessário: {adj['action'].title()} {abs(adj['amount_adjustment']):.8f} unidades")
-        result.append(f"  * Valor do Ajuste: R$ {abs(adj['adjustment_brl']):.2f}")
-
+    if cryptos:
+        result.append("\n1. Ajustes em Criptomoedas:")
+        for adj in cryptos:
+            action = "COMPRAR" if adj['amount_adjustment'] > 0 else "VENDER"
+            result.append(f"\n{adj['symbol']} - {action}:")
+            result.append(f"  * Alocação atual: {adj['current_percentage']:.2f}% do portfólio total")
+            result.append(f"  * Nova alocação: {adj['target_percentage']:.2f}% do portfólio total")
+            result.append(f"  * Quantidade exata: {abs(adj['amount_adjustment']):.8f} {adj['symbol']}")
+            result.append(f"  * Valor em R$: {abs(adj['adjustment_brl']):.2f}")
+            result.append(f"  * Quantidade atual: {adj['current_amount']:.8f} {adj['symbol']}")
+            result.append(f"  * Quantidade após ajuste: {adj['target_amount']:.8f} {adj['symbol']}")
+    
     if stables:
-        result.append("\nStablecoins:")
+        result.append("\n2. Ajustes em Stablecoins:")
         for adj in stables:
-            result.append(f"\n{adj['symbol']}:")
-            result.append(f"  * Valor Atual: R$ {adj['current_value_brl']:.2f}")
-            result.append(f"  * Valor Alvo: R$ {adj['target_value_brl']:.2f}")
-            result.append(f"  * Quantidade Atual: {adj['current_amount']:.8f}")
-            result.append(f"  * Quantidade Alvo: {adj['target_amount']:.8f}")
-            result.append(f"  * Ajuste Necessário: {adj['action'].title()} {abs(adj['amount_adjustment']):.8f} unidades")
-            result.append(f"  * Valor do Ajuste: R$ {abs(adj['adjustment_brl']):.2f}")
+            action = "COMPRAR" if adj['amount_adjustment'] > 0 else "VENDER"
+            result.append(f"\n{adj['symbol']} - {action}:")
+            result.append(f"  * Alocação atual: {adj['current_percentage']:.2f}% do portfólio total")
+            result.append(f"  * Nova alocação: {adj['target_percentage']:.2f}% do portfólio total")
+            result.append(f"  * Quantidade exata: {abs(adj['amount_adjustment']):.8f} {adj['symbol']}")
+            result.append(f"  * Valor em R$: {abs(adj['adjustment_brl']):.2f}")
+            result.append(f"  * Quantidade atual: {adj['current_amount']:.8f} {adj['symbol']}")
+            result.append(f"  * Quantidade após ajuste: {adj['target_amount']:.8f} {adj['symbol']}")
+    
+    result.append("\nObservações Importantes:")
+    result.append("1. Estas recomendações visam reequilibrar o portfólio para a regra 70-30")
+    result.append("2. Os ajustes são necessários pois o portfólio está fora da margem de tolerância de ±2.5%")
+    result.append("3. As proporções entre ativos da mesma categoria (cripto/stable) são mantidas")
+    result.append("4. Execute as ordens na sequência sugerida para manter o balanceamento correto")
+    result.append("5. Os valores em R$ são aproximados e podem variar devido à volatilidade do mercado")
     
     return "\n".join(result)
 

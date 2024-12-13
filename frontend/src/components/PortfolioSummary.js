@@ -1,5 +1,5 @@
 import React from 'react';
-import { PieChart, Pie, Cell, ResponsiveContainer } from 'recharts';
+import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
 
 const PortfolioSummary = ({ data }) => {
   if (!data || !data.total_brl) return null;
@@ -10,8 +10,28 @@ const PortfolioSummary = ({ data }) => {
 
   const allocation = Object.entries(assets).map(([symbol, asset]) => ({
     symbol,
-    value: asset.value_brl / total_brl
+    value: asset.value_brl / total_brl,
+    percentage: ((asset.value_brl / total_brl) * 100).toFixed(2)
   }));
+
+  const CustomTooltip = ({ active, payload }) => {
+    if (active && payload && payload[0]) {
+      const data = payload[0].payload;
+      return (
+        <div style={{
+          backgroundColor: 'rgba(0, 0, 0, 0.8)',
+          padding: '8px',
+          borderRadius: '4px',
+          color: 'white',
+          fontSize: '14px'
+        }}>
+          <div>{data.symbol}</div>
+          <div>{data.percentage}%</div>
+        </div>
+      );
+    }
+    return null;
+  };
 
   return (
     <>
@@ -48,6 +68,7 @@ const PortfolioSummary = ({ data }) => {
                 <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
               ))}
             </Pie>
+            <Tooltip content={<CustomTooltip />} />
           </PieChart>
         </ResponsiveContainer>
         <div className="chart-legend">
@@ -55,7 +76,7 @@ const PortfolioSummary = ({ data }) => {
             <div key={index} className="legend-item">
               <span className="legend-color" style={{ backgroundColor: COLORS[index % COLORS.length] }}></span>
               <span className="legend-label">{item.symbol}</span>
-              <span className="legend-value">{(item.value * 100).toFixed(2)}%</span>
+              <span className="legend-value">{item.percentage}%</span>
             </div>
           ))}
         </div>
