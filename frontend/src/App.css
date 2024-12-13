@@ -7,6 +7,13 @@
   --border-color: #e2e8f0;
   --shadow-color: rgba(0, 0, 0, 0.1);
   --chart-colors: #3b82f6, #f59e0b, #10b981, #6366f1, #ec4899;
+  --container-padding: 2rem;
+}
+
+@media (max-width: 768px) {
+  :root {
+    --container-padding: 1rem;
+  }
 }
 
 .dark-mode {
@@ -30,19 +37,21 @@ body {
   background-color: var(--bg-primary);
   color: var(--text-primary);
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  -webkit-text-size-adjust: 100%;
 }
 
 .App {
   text-align: center;
   min-height: 100vh;
   background-color: var(--bg-primary);
+  padding: 0 var(--container-padding);
 }
 
 .App-header {
   background: rgba(17, 24, 39, 0.75);
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
-  padding: 1.2rem 2rem;
+  padding: 1.2rem var(--container-padding);
   position: sticky;
   top: 0;
   z-index: 1000;
@@ -50,7 +59,7 @@ body {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  transition: all 0.3s ease;
+  margin: 0 calc(-1 * var(--container-padding));
 }
 
 .App-header h1 {
@@ -687,6 +696,77 @@ main {
 
   .App-header h1::before {
     font-size: 1.7rem;
+  }
+}
+
+.portfolio-container {
+  max-width: 1200px;
+  margin: 2rem auto;
+  padding: 0;
+}
+
+.portfolio-metrics {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1rem;
+  margin: 1rem 0;
+}
+
+.metric-card {
+  background-color: var(--bg-secondary);
+  padding: 1.5rem;
+  border-radius: 0.5rem;
+  box-shadow: 0 1px 3px var(--shadow-color);
+}
+
+.portfolio-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1rem 0;
+  overflow-x: auto;
+  display: block;
+}
+
+.portfolio-table th,
+.portfolio-table td {
+  padding: 1rem;
+  text-align: left;
+  border-bottom: 1px solid var(--border-color);
+}
+
+@media (max-width: 768px) {
+  .portfolio-table th,
+  .portfolio-table td {
+    padding: 0.75rem 0.5rem;
+    font-size: 0.875rem;
+  }
+
+  .portfolio-table th:nth-child(n+4),
+  .portfolio-table td:nth-child(n+4) {
+    display: none;
+  }
+
+  .metric-card {
+    padding: 1rem;
+  }
+
+  .portfolio-analysis {
+    padding: 1rem;
+  }
+}
+
+.chart-container {
+  height: 300px;
+  margin: 2rem 0;
+}
+
+@media (max-width: 480px) {
+  .chart-container {
+    height: 250px;
+  }
+
+  .portfolio-metrics {
+    grid-template-columns: 1fr;
   }
 }
 
