@@ -1,0 +1,222 @@
+.portfolio-history {
+  padding: 20px;
+  width: 100%;
+  max-width: 1200px; /* Limitando a largura máxima */
+  margin: 0 auto; /* Centralizando horizontalmente */
+  /*display: flex;*/
+  flex-direction: column;
+  align-items: center; /* Centralizando o conteúdo */
+}
+
+.portfolio-history h2 {
+  color: #fff;
+  text-align: center;
+  margin-bottom: 30px;
+  font-size: 24px;
+  width: 100%;
+}
+
+.history-loading {
+  text-align: center;
+  padding: 20px;
+  color: #8b8b8b;
+}
+
+.history-error {
+  text-align: center;
+  padding: 20px;
+  color: #ff4444;
+  background-color: rgba(255, 68, 68, 0.1);
+  border-radius: 8px;
+  margin: 20px;
+  border: 1px solid rgba(255, 68, 68, 0.2);
+}
+
+.history-empty {
+  text-align: center;
+  padding: 20px;
+  color: #8b8b8b;
+  background-color: rgba(255, 255, 255, 0.05);
+  border-radius: 8px;
+  margin: 20px;
+}
+
+.history-list {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  padding: 0 20px;
+  max-height: 300px; /* Limitando a altura da lista */
+  overflow-y: auto; /* Adicionando scroll vertical */
+}
+
+.history-list::-webkit-scrollbar {
+  width: 8px;
+}
+
+.history-list::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 4px;
+}
+
+.history-list::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 4px;
+}
+
+.history-list::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+.history-item {
+  background-color: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  padding: 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  transition: all 0.3s ease;
+}
+
+.history-item:hover {
+  background-color: rgba(255, 255, 255, 0.08);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.history-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.history-date {
+  font-weight: 500;
+  color: #8b8b8b;
+  font-size: 14px;
+}
+
+.history-total {
+  font-weight: bold;
+  color: var(--success-color);
+}
+
+.history-content h3 {
+  margin: 0 0 15px 0;
+  color: var(--text-primary);
+  font-size: 1.1em;
+}
+
+.assets-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 15px;
+}
+
+.asset-item {
+  background-color: var(--bg-secondary);
+  padding: 15px;
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  transition: transform 0.2s;
+}
+
+.asset-item:hover {
+  transform: translateY(-2px);
+}
+
+.asset-symbol {
+  font-weight: bold;
+  color: var(--primary-color);
+  font-size: 1.1em;
+}
+
+.asset-quantity {
+  color: var(--text-secondary);
+}
+
+.asset-price {
+  color: var(--text-primary);
+}
+
+.asset-value {
+  color: var(--success-color);
+  font-weight: 500;
+}
+
+.chart-container {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 30px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  height: 400px;
+  width: 100%;
+  max-width: 1000px; /* Limitando a largura máxima do gráfico */
+  min-width: 600px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.recharts-wrapper {
+  width: 100% !important;
+}
+
+.chart-tooltip {
+  background-color: rgba(0, 0, 0, 0.8);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+  padding: 10px;
+  color: #fff;
+}
+
+.tooltip-date {
+  color: #8b8b8b;
+  margin: 0;
+  font-size: 12px;
+}
+
+.tooltip-value {
+  color: #00ff88;
+  margin: 5px 0 0 0;
+  font-size: 14px;
+  font-weight: bold;
+}
+
+@media (max-width: 768px) {
+  .portfolio-history {
+    margin: 10px;
+    padding: 15px;
+  }
+
+  .history-list {
+    padding: 0;
+  }
+
+  .history-item {
+    padding: 15px;
+  }
+
+  .assets-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .history-header {
+    flex-direction: column;
+    gap: 10px;
+    align-items: flex-start;
+  }
+
+  .chart-container {
+    padding: 10px;
+    margin: 0 0 20px 0;
+    min-width: unset; /* Removendo a largura mínima em telas pequenas */
+    height: 300px; /* Reduzindo a altura em telas pequenas */
+  }
+}

@@ -3,6 +3,7 @@ import axios from 'axios';
 import PortfolioSummary from './components/PortfolioSummary';
 import AssetList from './components/AssetList';
 import PortfolioAnalysis from './components/PortfolioAnalysis';
+import PortfolioHistory from './components/PortfolioHistory';
 import LoadingSpinner from './components/LoadingSpinner';
 import './App.css';
 import './styles/AssetList.css';
@@ -93,6 +94,7 @@ function App() {
               portfolioData={portfolioData}
               onRefresh={handleRefreshAnalysis}
             />
+            <PortfolioHistory />
           </div>
         </div>
       </main>

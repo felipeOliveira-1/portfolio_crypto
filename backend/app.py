@@ -10,45 +10,72 @@ import httpx
 from httpx import Proxy
 import traceback
 from typing import Dict, List
+import threading
+from datetime import timedelta
 
 # Load environment variables
 load_dotenv()
+
+# API configuration with defaults
+CMC_BASE_URL = 'https://pro-api.coinmarketcap.com/v1'  # Default URL
+CMC_API_KEY = os.getenv('CMC_API_KEY', '')  # Your API key from .env
+OPENAI_API_KEY = os.getenv('OPENAI_API_KEY', '')  # Your OpenAI key from .env
 
 app = Flask(__name__)
 CORS(app, resources={r"/api/*": {"origins": ["http://localhost:3000", "https://portfolio-crypto-frontend.onrender.com"]}})
 
 # Configure Flask for UTF-8
 app.config['JSON_AS_ASCII'] = False
+app.config['DEBUG'] = True  # Enable debug mode
 
-# Add encoding headers to all responses
-@app.after_request
 def add_header(response):
-    if 'json' in response.content_type:
-        response.headers['Content-Type'] = 'application/json; charset=utf-8'
+    """Add CORS headers to response"""
+    response.headers['Access-Control-Allow-Origin'] = '*'
+    response.headers['Access-Control-Allow-Headers'] = 'Content-Type'
+    response.headers['Content-Type'] = 'application/json; charset=utf-8'
     return response
 
 def json_response(data):
     """Helper function to create JSON responses with proper encoding"""
     response = jsonify(data)
-    response.headers['Content-Type'] = 'application/json; charset=utf-8'
-    return response
+    return add_header(response)
 
-# API configuration
-CMC_API_KEY = os.getenv('CMC_API_KEY')
-CMC_BASE_URL = 'https://pro-api.coinmarketcap.com/v1'
-OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')
+# Global lock for file operations
+portfolio_lock = threading.Lock()
+
+# Configuration constants
+MAX_HISTORY_ENTRIES = 1000  # Maximum number of history entries to keep
+MAX_HISTORY_AGE_DAYS = 90   # Maximum age of history entries in days
+HISTORY_FILE_PATH = os.path.join('data', 'portfolio_history.json')
+
+# Load prompt templates
+def load_prompt_template(filename):
+    """Load prompt template from file"""
+    try:
+        with open(f'prompts/{filename}', 'r', encoding='utf-8') as f:
+            return f.read()
+    except FileNotFoundError as e:
+        print(f"Prompt template file not found: {filename} - {e}")
+        return None
+    except Exception as e:
+        print(f"Error loading prompt template {filename}: {e}")
+        return None
 
 # Initialize OpenAI client
-proxy_str = os.getenv('PROXIES')
-transport = httpx.HTTPTransport(
-    proxy=Proxy(url=proxy_str) if proxy_str else None
-)
-http_client = httpx.Client(transport=transport, verify=False)
-client = OpenAI(
-    api_key=OPENAI_API_KEY,
-    http_client=http_client
-)
+def init_openai_client():
+    """Initialize OpenAI client with proxy"""
+    proxy_str = os.getenv('PROXIES')
+    transport = httpx.HTTPTransport(
+        proxy=Proxy(url=proxy_str) if proxy_str else None
+    )
+    http_client = httpx.Client(transport=transport, verify=False)
+    client = OpenAI(
+        api_key=OPENAI_API_KEY,
+        http_client=http_client
+    )
+    return client
 
+# Load portfolio data from JSON file
 def load_portfolio():
     """Load portfolio data from JSON file"""
     try:
@@ -64,36 +91,27 @@ def load_portfolio():
         print(f"Unexpected error loading portfolio: {e}")
         return {}
 
-def load_prompt_template(filename):
-    """Load prompt template from file"""
-    try:
-        with open(f'prompts/{filename}', 'r', encoding='utf-8') as f:
-            return f.read()
-    except FileNotFoundError as e:
-        print(f"Prompt template file not found: {filename} - {e}")
-        return None
-    except Exception as e:
-        print(f"Error loading prompt template {filename}: {e}")
-        return None
-
+# Get current prices for cryptocurrencies
 def get_crypto_prices(symbols):
     """Get current prices for cryptocurrencies"""
     try:
+        # Set up headers with API key
         headers = {
+            'Accepts': 'application/json',
             'X-CMC_PRO_API_KEY': CMC_API_KEY,
         }
         
         # Handle USDB separately as it's a stablecoin pegged to USD
+        prices = {}
         if 'USDB' in symbols:
-            symbols = [sym for sym in symbols if sym != 'USDB']
-            
-            # Create USDB data with fixed price of 1 USD converted to BRL
-            # Get USD/BRL exchange rate using a regular USD-pegged stablecoin like USDT
             usdt_params = {
                 'symbol': 'USDT',
                 'convert': 'BRL'
             }
             usdt_response = requests.get(f'{CMC_BASE_URL}/cryptocurrency/quotes/latest', headers=headers, params=usdt_params)
+            
+            # Create USDB data with fixed price of 1 USD converted to BRL
+            # Get USD/BRL exchange rate using a regular USD-pegged stablecoin like USDT
             usdt_data = usdt_response.json()
             
             if usdt_response.status_code == 200 and 'data' in usdt_data:
@@ -153,6 +171,7 @@ def get_crypto_prices(symbols):
         print(f"Error in get_crypto_prices: {e}\n{traceback.format_exc()}")
         return None
 
+# Get price changes for cryptocurrencies from CoinMarketCap
 def get_crypto_price_changes(symbols: List[str]) -> Dict:
     """
     Get price changes for cryptocurrencies from CoinMarketCap
@@ -203,6 +222,7 @@ def get_crypto_price_changes(symbols: List[str]) -> Dict:
         traceback.print_exc()
         return {}
 
+# Calculate portfolio value changes based on individual asset changes
 def calculate_portfolio_changes(portfolio_data: Dict) -> Dict:
     """
     Calculate portfolio value changes based on individual asset changes
@@ -248,6 +268,7 @@ def calculate_portfolio_changes(portfolio_data: Dict) -> Dict:
         traceback.print_exc()
         return {'change_24h': 0, 'change_7d': 0}
 
+# Generate detailed portfolio analysis following 70-30 strategy with 2.5% tolerance
 def generate_market_analysis(portfolio_data: Dict, template_data: Dict) -> Dict:
     """
     Generate detailed portfolio analysis following 70-30 strategy with 2.5% tolerance
@@ -401,6 +422,7 @@ def generate_market_analysis(portfolio_data: Dict, template_data: Dict) -> Dict:
             'asset_adjustments': []
         }
 
+# Format cryptocurrency allocation data for the prompt
 def format_crypto_allocations(crypto_data: Dict) -> str:
     """Format cryptocurrency allocation data for the prompt"""
     result = []
@@ -414,6 +436,7 @@ def format_crypto_allocations(crypto_data: Dict) -> str:
         result.append(f"  * Variação 7d: {data['price_change_7d']:.2f}%\n")
     return "\n".join(result)
 
+# Format stablecoin allocation data for the prompt
 def format_stable_allocations(stable_data: Dict) -> str:
     """Format stablecoin allocation data for the prompt"""
     result = []
@@ -424,6 +447,7 @@ def format_stable_allocations(stable_data: Dict) -> str:
         result.append(f"  * Alocação: {data['allocation_total']:.2f}%\n")
     return "\n".join(result)
 
+# Format rebalancing suggestions for the prompt
 def format_rebalancing_suggestions(suggestions: List) -> str:
     """Format rebalancing suggestions for the prompt"""
     result = ["Ajustes Recomendados por Categoria:"]
@@ -435,6 +459,7 @@ def format_rebalancing_suggestions(suggestions: List) -> str:
         result.append(f"  * Ação: {action} exposição em R$ {abs(suggestion['adjustment_brl']):.2f}\n")
     return "\n".join(result)
 
+# Format detailed asset-specific adjustments for the prompt
 def format_asset_adjustments(adjustments: List) -> str:
     """Format detailed asset-specific adjustments for the prompt"""
     if not adjustments:
@@ -479,6 +504,7 @@ def format_asset_adjustments(adjustments: List) -> str:
     
     return "\n".join(result)
 
+# Get AI analysis of the portfolio
 def get_ai_analysis(portfolio_data: Dict) -> Dict:
     """Get AI analysis of the portfolio"""
     try:
@@ -520,6 +546,7 @@ Necessidade de Rebalanceamento:
 """
 
         # Get AI analysis with specific parameters
+        client = init_openai_client()
         response = client.chat.completions.create(
             model="gpt-4o",
             messages=[
@@ -547,16 +574,85 @@ Necessidade de Rebalanceamento:
         print(error_msg)
         return {"error": str(e)}
 
+# Clean old history entries from portfolio history
+def clean_old_history(history_data):
+    """Remove old entries from history based on configured limits"""
+    if not history_data or "history" not in history_data:
+        return {"history": []}
+
+    history = history_data["history"]
+    
+    # Sort by timestamp (newest first)
+    history.sort(key=lambda x: x["timestamp"], reverse=True)
+    
+    # Keep only MAX_HISTORY_ENTRIES
+    history = history[:MAX_HISTORY_ENTRIES]
+    
+    # Remove entries older than MAX_HISTORY_AGE_DAYS
+    cutoff_date = (datetime.datetime.now() - timedelta(days=MAX_HISTORY_AGE_DAYS)).isoformat()
+    history = [entry for entry in history if entry["timestamp"] >= cutoff_date]
+    
+    return {"history": history}
+
+# Save portfolio data and append changes to history with concurrency control
+def save_portfolio_with_history(portfolio_data):
+    """Save portfolio data and append changes to history with concurrency control"""
+    with portfolio_lock:  # Use lock to prevent concurrent file access
+        try:
+            # Load current history
+            if os.path.exists(HISTORY_FILE_PATH):
+                with open(HISTORY_FILE_PATH, 'r') as f:
+                    history_data = json.load(f)
+            else:
+                history_data = {"history": []}
+            
+            # Get current prices for portfolio valuation
+            symbols = list(portfolio_data.keys())
+            prices = get_crypto_prices(symbols)
+            
+            # Calculate total portfolio value
+            total_value = 0
+            for symbol, quantity in portfolio_data.items():
+                if symbol in prices:
+                    price_brl = prices[symbol]['quote']['BRL']['price']
+                    value_brl = float(quantity) * price_brl
+                    total_value += value_brl
+            
+            # Add new state to history
+            history_data["history"].append({
+                "timestamp": datetime.datetime.now().isoformat(),
+                "value": total_value
+            })
+            
+            # Clean old history entries
+            history_data = clean_old_history(history_data)
+
+            # Ensure data directory exists
+            os.makedirs(os.path.dirname(HISTORY_FILE_PATH), exist_ok=True)
+
+            # Save updated history
+            with open(HISTORY_FILE_PATH, 'w') as f:
+                json.dump(history_data, f, indent=4)
+
+            # Save the updated portfolio
+            with open('portfolio.json', 'w') as f:
+                json.dump(portfolio_data, f, indent=4)
+
+            return True
+        except Exception as e:
+            print(f"Error saving portfolio with history: {e}")
+            return False
+
+# Save portfolio data to JSON file with history tracking
 def save_portfolio(portfolio_data):
-    """Save portfolio data to JSON file"""
+    """Save portfolio data to JSON file with history tracking"""
     try:
-        with open('portfolio.json', 'w') as f:
-            json.dump(portfolio_data, f, indent=4)
-        return True
+        return save_portfolio_with_history(portfolio_data)
     except Exception as e:
         print(f"Error saving portfolio: {e}")
         return False
 
+# Get portfolio with current values in BRL
 @app.route('/api/portfolio', methods=['GET'])
 def get_portfolio():
     """Get portfolio with current values in BRL"""
@@ -590,6 +686,7 @@ def get_portfolio():
     
     return json_response(portfolio_data)
 
+# Update portfolio asset quantities
 @app.route('/api/portfolio/update', methods=['POST'])
 def update_portfolio():
     """Update portfolio asset quantities"""
@@ -621,6 +718,7 @@ def update_portfolio():
         print(error_msg)
         return json_response({'error': error_msg}), 500
 
+# Get portfolio with AI analysis
 @app.route('/api/portfolio/analysis', methods=['GET'])
 def get_portfolio_analysis():
     """Get portfolio with AI analysis"""
@@ -703,6 +801,58 @@ def get_portfolio_analysis():
         print(error_msg)
         return json_response({'error': str(e)}), 500
 
+# Get portfolio history with optional time filter
+@app.route('/api/portfolio/history')
+def get_portfolio_history_endpoint():
+    """Get portfolio history with optional time filter"""
+    print("Received request for portfolio history")  # Debug log
+    try:
+        # Get days parameter from query string, default to None (all history)
+        days = request.args.get('days', type=int)
+        print(f"Filtering history for days: {days}")  # Debug log
+        
+        history_data = get_portfolio_history(days)
+        print(f"Returning history data: {history_data}")  # Debug log
+        
+        return json_response(history_data)
+    except Exception as e:
+        error_msg = f"Error retrieving portfolio history: {str(e)}"
+        print(f"Error in history endpoint: {error_msg}")  # Debug log
+        traceback.print_exc()  # Print full traceback
+        return json_response({"error": error_msg}), 500
+
+# Retrieve portfolio history with optional time filter
+def get_portfolio_history(days=None):
+    """Retrieve portfolio history with optional time filter"""
+    try:
+        if not os.path.exists(HISTORY_FILE_PATH):
+            print(f"History file not found at: {HISTORY_FILE_PATH}")
+            return {"history": []}
+        
+        with open(HISTORY_FILE_PATH, 'r') as f:
+            history_data = json.load(f)
+            print(f"Loaded history data: {history_data}")  # Debug log
+        
+        if days is not None:
+            cutoff_date = (datetime.datetime.now() - timedelta(days=days)).isoformat()
+            history_data["history"] = [
+                entry for entry in history_data["history"]
+                if entry["timestamp"] >= cutoff_date
+            ]
+        
+        return history_data
+    except Exception as e:
+        print(f"Error retrieving portfolio history: {e}")
+        traceback.print_exc()
+        return {"history": []}
+
+# Register routes at the end of the file
+@app.route('/')
+def home():
+    return "Portfolio Crypto API"
+
 if __name__ == '__main__':
+    print("Starting Flask server...")
+    print(f"Available routes: {[str(rule) for rule in app.url_map.iter_rules()]}")  # Debug log
     port = int(os.environ.get("PORT", 10000))
-    app.run(host='0.0.0.0', port=port)
+    app.run(host='0.0.0.0', port=port, debug=True)
