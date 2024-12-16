@@ -1,0 +1,148 @@
+.asset-table-container {
+  padding: 20px;
+  background-color: #1a1b1e;
+  border-radius: 8px;
+  margin: 20px 0;
+}
+
+.table-controls {
+  margin-bottom: 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.search-container {
+  flex: 1;
+  max-width: 300px;
+}
+
+.search-input {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid #2c2d30;
+  border-radius: 4px;
+  background-color: #2c2d30;
+  color: #ffffff;
+  font-size: 0.875rem;
+}
+
+.search-input:focus {
+  outline: none;
+  border-color: #60a5fa;
+}
+
+.search-input::placeholder {
+  color: #888;
+}
+
+.asset-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  color: #ffffff;
+}
+
+.asset-table th {
+  padding: 12px;
+  text-align: left;
+  border-bottom: 2px solid #2c2d30;
+  font-weight: 600;
+}
+
+.sortable-header {
+  cursor: pointer;
+  user-select: none;
+  transition: background-color 0.2s;
+}
+
+.sortable-header:hover {
+  background-color: #2c2d30;
+}
+
+.asset-table td {
+  padding: 12px;
+  border-bottom: 1px solid #2c2d30;
+}
+
+.asset-table tr:hover td {
+  background-color: #2c2d30;
+}
+
+.asset-symbol-cell {
+  font-weight: 600;
+}
+
+.amount-input {
+  width: 100%;
+  padding: 6px 8px;
+  border: 1px solid #2c2d30;
+  border-radius: 4px;
+  background-color: #2c2d30;
+  color: #ffffff;
+  font-size: 0.875rem;
+}
+
+.amount-input:focus {
+  outline: none;
+  border-color: #60a5fa;
+}
+
+.edit-btn,
+.save-btn,
+.cancel-btn {
+  padding: 6px 12px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.875rem;
+  transition: background-color 0.2s;
+}
+
+.edit-btn {
+  background-color: #60a5fa;
+  color: #ffffff;
+}
+
+.edit-btn:hover {
+  background-color: #3b82f6;
+}
+
+.save-btn {
+  background-color: #34d399;
+  color: #ffffff;
+  margin-right: 8px;
+}
+
+.save-btn:hover {
+  background-color: #10b981;
+}
+
+.cancel-btn {
+  background-color: #f87171;
+  color: #ffffff;
+}
+
+.cancel-btn:hover {
+  background-color: #ef4444;
+}
+
+button:disabled {
+  background-color: #374151;
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+.error-message {
+  background-color: rgba(248, 113, 113, 0.1);
+  border: 1px solid #f87171;
+  color: #f87171;
+  padding: 12px;
+  border-radius: 4px;
+  margin-bottom: 16px;
+}
+
+.updating {
+  opacity: 0.7;
+  pointer-events: none;
+}

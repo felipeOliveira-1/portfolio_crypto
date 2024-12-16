@@ -5,6 +5,7 @@ import AssetList from './components/AssetList';
 import PortfolioAnalysis from './components/PortfolioAnalysis';
 import LoadingSpinner from './components/LoadingSpinner';
 import './App.css';
+import './styles/AssetList.css';
 
 // Definindo as URLs da API
 const API_URL = process.env.NODE_ENV === 'production'
