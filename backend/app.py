@@ -11,7 +11,7 @@ from httpx import Proxy
 import traceback
 from typing import Dict, List
 import threading
-from datetime import timedelta
+from datetime import datetime, timedelta, timezone
 
 # Load environment variables
 load_dotenv()
@@ -282,7 +282,7 @@ def generate_market_analysis(portfolio_data: Dict, template_data: Dict) -> Dict:
         # Initialize analysis data
         analysis_data = {
             'total_value_brl': portfolio_data['total_brl'],
-            'timestamp': datetime.datetime.now().strftime("%d/%m/%Y, %H:%M:%S"),
+            'timestamp': datetime.now(timezone(timedelta(hours=-3))).isoformat(),
             'allocations': {'crypto': {}, 'stable': {}},
             'rebalance_needed': False,
             'rebalance_suggestions': [],
@@ -589,7 +589,7 @@ def clean_old_history(history_data):
     history = history[:MAX_HISTORY_ENTRIES]
     
     # Remove entries older than MAX_HISTORY_AGE_DAYS
-    cutoff_date = (datetime.datetime.now() - timedelta(days=MAX_HISTORY_AGE_DAYS)).isoformat()
+    cutoff_date = (datetime.datetime.now(timezone(timedelta(hours=-3))) - timedelta(days=MAX_HISTORY_AGE_DAYS)).isoformat()
     history = [entry for entry in history if entry["timestamp"] >= cutoff_date]
     
     return {"history": history}
@@ -620,7 +620,7 @@ def save_portfolio_with_history(portfolio_data):
             
             # Add new state to history
             history_data["history"].append({
-                "timestamp": datetime.datetime.now().isoformat(),
+                "timestamp": datetime.now(timezone(timedelta(hours=-3))).isoformat(),
                 "value": total_value
             })
             
@@ -834,7 +834,7 @@ def get_portfolio_history(days=None):
             print(f"Loaded history data: {history_data}")  # Debug log
         
         if days is not None:
-            cutoff_date = (datetime.datetime.now() - timedelta(days=days)).isoformat()
+            cutoff_date = (datetime.datetime.now(timezone(timedelta(hours=-3))) - timedelta(days=days)).isoformat()
             history_data["history"] = [
                 entry for entry in history_data["history"]
                 if entry["timestamp"] >= cutoff_date
