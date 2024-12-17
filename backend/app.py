@@ -589,7 +589,7 @@ def clean_old_history(history_data):
     history = history[:MAX_HISTORY_ENTRIES]
     
     # Remove entries older than MAX_HISTORY_AGE_DAYS
-    cutoff_date = (datetime.datetime.now(timezone(timedelta(hours=-3))) - timedelta(days=MAX_HISTORY_AGE_DAYS)).isoformat()
+    cutoff_date = (datetime.now(timezone(timedelta(hours=-3))) - timedelta(days=MAX_HISTORY_AGE_DAYS)).isoformat()
     history = [entry for entry in history if entry["timestamp"] >= cutoff_date]
     
     return {"history": history}
@@ -834,7 +834,7 @@ def get_portfolio_history(days=None):
             print(f"Loaded history data: {history_data}")  # Debug log
         
         if days is not None:
-            cutoff_date = (datetime.datetime.now(timezone(timedelta(hours=-3))) - timedelta(days=days)).isoformat()
+            cutoff_date = (datetime.now(timezone(timedelta(hours=-3))) - timedelta(days=days)).isoformat()
             history_data["history"] = [
                 entry for entry in history_data["history"]
                 if entry["timestamp"] >= cutoff_date
